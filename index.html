@@ -24,43 +24,45 @@
 
 <main class="app-shell">
   <section class="hero">
-    <p class="eyebrow">Question → Preregister → Cast → Review</p>
-    <h1>괘를 보기 전에<br>예상을 잠급니다.</h1>
-    <p class="lede">질문과 예상 결과를 먼저 고정한 다음 좌표를 고릅니다. 괘가 나온 뒤에는 고변점 방식으로 정해진 해석문을 자동으로 저장합니다.</p>
+    <p class="eyebrow">Question → Cast → Reading → My Guess</p>
+    <h1>질문을 잠그고<br>괘를 봅니다.</h1>
+    <p class="lede">질문을 먼저 고정한 다음 난수표 또는 동전으로 괘를 뽑습니다. 고변점 방식으로 정해진 해석문을 확인한 뒤에 내 의견을 기록합니다.</p>
     <div class="privacy-note"><b>개인정보 보호:</b> 질문과 기록은 이 기기의 브라우저에만 저장되며 GitHub로 전송되지 않습니다.</div>
   </section>
 
   <nav class="progress" aria-label="진행 단계">
-    <span class="active" data-progress="1"><b>1</b> 사전등록</span>
-    <span data-progress="2"><b>2</b> 좌표</span>
-    <span data-progress="3"><b>3</b> 괘</span>
-    <span data-progress="4"><b>4</b> 기록</span>
+    <span class="active" data-progress="1"><b>1</b> 질문</span>
+    <span data-progress="2"><b>2</b> 괘 뽑기</span>
+    <span data-progress="3"><b>3</b> 해석</span>
+    <span data-progress="4"><b>4</b> 의견</span>
   </nav>
 
-  <section class="flow-card" data-stage="prereg">
+  <section class="flow-card" data-stage="question">
     <div class="section-head">
       <span class="step-badge">1</span>
-      <div><h2>질문과 예상</h2><p>아직 난수표와 괘는 보이지 않습니다.</p></div>
+      <div><h2>질문</h2><p>질문을 잠그면 괘 뽑기로 넘어갑니다.</p></div>
     </div>
-    <form class="app-form" data-prereg-form>
+    <form class="app-form" data-question-form>
       <label>질문
         <textarea name="question" required placeholder="예: 지금 하는 연구 주제를 계속 밀고 나가는 것이 어떤 때인가?"></textarea>
         <small>예/아니오형은 “~하는 것이 지금 어떤 때인가?”처럼 상황을 묻는 문장으로 바꿉니다.</small>
       </label>
-      <label>예상 결과
-        <textarea name="prediction" required placeholder="괘를 보기 전, 실제로 어떤 일이 일어날 것 같은가?"></textarea>
-      </label>
-      <p class="form-error" data-prereg-error role="alert"></p>
-      <button class="primary" type="submit">사전등록 잠그기</button>
+      <p class="form-error" data-question-error role="alert"></p>
+      <button class="primary" type="submit">질문 잠그기</button>
     </form>
-    <div class="locked-card" data-prereg-locked hidden></div>
+    <div class="locked-card" data-question-locked hidden></div>
   </section>
 
-  <section class="flow-card" data-stage="picker" hidden>
+  <section class="flow-card" data-stage="cast" hidden>
     <div class="section-head">
       <span class="step-badge">2</span>
-      <div><h2>난수표 좌표</h2><p>버튼을 누르는 순간의 타이밍으로 행과 열을 멈춥니다.</p></div>
+      <div><h2>괘 뽑기</h2><p>난수표 또는 동전으로 여섯 효를 정합니다.</p></div>
     </div>
+    <div class="method-tabs" data-method-tabs>
+      <button type="button" class="method-tab active" data-method="table">난수표</button>
+      <button type="button" class="method-tab" data-method="coin">동전</button>
+    </div>
+
     <div class="picker app-picker" data-app-picker>
       <div class="picker-dials">
         <div class="dial" data-dial="row"><span class="dial-label">행</span><b class="dial-num">--</b><span class="dial-range">1~40</span></div>
@@ -70,24 +72,45 @@
       <p class="picker-hint" data-picker-hint>행을 멈춘 다음, 열을 멈춥니다.</p>
       <p class="form-error" data-picker-error role="alert"></p>
     </div>
+
+    <div class="coin-picker" data-coin-picker hidden>
+      <p class="picker-hint">동전 세 개를 직접 던져 나온 효값(6·7·8·9)을 초효부터 순서대로 고릅니다.</p>
+      <div class="coin-rows" data-coin-rows></div>
+      <button class="picker-go primary" type="button" data-coin-go disabled>괘 뽑기</button>
+      <p class="form-error" data-coin-error role="alert"></p>
+    </div>
   </section>
 
   <section class="flow-card result-card" data-stage="result" hidden>
     <div class="section-head">
       <span class="step-badge">3</span>
-      <div><h2>괘와 읽을 문장</h2><p>이제 사전등록과 나란히 놓고 읽습니다.</p></div>
+      <div><h2>괘와 읽을 문장</h2><p>고변점 방식으로 정해진 해석문입니다.</p></div>
     </div>
     <div data-cast-result></div>
     <div class="button-row">
-      <button type="button" data-copy-packet>결과 복사</button>
+      <button type="button" data-copy-packet>고변점 추출문(主) 복사</button>
     </div>
+  </section>
+
+  <section class="flow-card" data-stage="guess" hidden>
+    <div class="section-head">
+      <span class="step-badge">4</span>
+      <div><h2>내 의견</h2><p>괘와 해석문을 본 뒤, 예상하는 결과를 적습니다.</p></div>
+    </div>
+    <form class="app-form" data-guess-form>
+      <label>내 의견 (결과 예측)
+        <textarea name="guess" required placeholder="이 괘와 해석문을 보고, 실제로 어떤 일이 일어날 것 같은가?"></textarea>
+      </label>
+      <p class="form-error" data-guess-error role="alert"></p>
+      <button class="primary" type="submit">의견 기록</button>
+    </form>
+    <div class="locked-card" data-guess-locked hidden></div>
     <p class="save-status" data-save-status aria-live="polite"></p>
   </section>
 
   <section class="records-section" aria-labelledby="records-title">
     <div class="section-head records-head">
-      <span class="step-badge">4</span>
-      <div><h2 id="records-title">기록과 실제 결과</h2><p>나중에 돌아와 사실을 붙이고, 예상이 견뎠는지 확인합니다.</p></div>
+      <div><h2 id="records-title">기록</h2><p>사후 결과 입력과 적중 판정은 이 앱이 아니라 저장소 폴더에서 나중에 처리합니다.</p></div>
     </div>
     <div class="record-actions">
       <button type="button" data-export>JSON 내보내기</button>
@@ -101,33 +124,9 @@
 
   <footer>
     <p><a href="reference/random-number-table.html">난수표와 방법 설명</a> · <a href="reference/reading-rules.html">고변점 규칙</a> · <a href="lessons/0001-cast-a-hexagram.html">학습 과정</a></p>
-    <p class="src">이 도구는 예언을 확정하는 장치가 아니라, 질문과 판단 과정을 기록하고 검토하는 학습 도구입니다.</p>
+    <p class="src">이 도구는 예언을 확정하는 장치가 아니라, 질문과 판단 과정을 기록하고 검토하는 학습 도구입니다. 사후 결과와 적중 판정은 <code>tools/reading_log.py</code>로 이 저장소에서 처리합니다.</p>
   </footer>
 </main>
-
-<dialog data-outcome-dialog>
-  <form method="dialog" class="outcome-form" data-outcome-form>
-    <h2>실제로 일어난 일</h2>
-    <input type="hidden" name="id">
-    <label>관찰한 사실
-      <textarea name="facts" required placeholder="해석을 섞지 말고 실제로 일어난 일만 적습니다."></textarea>
-    </label>
-    <label>사전 예상에 대한 판단
-      <select name="rating" required>
-        <option value="">선택</option>
-        <option value="hit">대체로 맞음</option>
-        <option value="mixed">섞여 있음</option>
-        <option value="miss">대체로 틀림</option>
-        <option value="unclear">아직 판정 불가</option>
-      </select>
-    </label>
-    <label>메모 <textarea name="note" placeholder="판정 이유나 다음에 확인할 점"></textarea></label>
-    <div class="button-row">
-      <button value="cancel" type="button" data-close-dialog>취소</button>
-      <button class="primary" value="save" type="submit">결과 저장</button>
-    </div>
-  </form>
-</dialog>
 
 <script src="assets/hex64.js"></script>
 <script src="assets/hexagram.js"></script>

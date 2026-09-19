@@ -1,4 +1,4 @@
-const CACHE = 'juyeok-web-v5';
+const CACHE = 'juyeok-web-v7';
 const APP_SHELL = [
   './',
   './index.html',

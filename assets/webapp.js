@@ -1,5 +1,6 @@
 /* 모바일 주역 실전 기록 앱.
-   질문·사전등록·결과는 localStorage에만 둔다. 네트워크로 전송하지 않는다.
+   질문·괘·해석·의견은 localStorage에만 둔다. 네트워크로 전송하지 않는다.
+   사후 결과 입력과 적중 판정은 이 앱이 아니라 저장소의 tools/reading_log.py에서 처리한다.
    난수표는 reference/random-number-table.html을 읽어 기존 파생본을 단일 원천으로 쓴다. */
 (() => {
   'use strict';
@@ -11,18 +12,20 @@
   const HANJA_NUM = ['初', '二', '三', '四', '五', '上'];
   const RATING = { hit: '대체로 맞음', mixed: '섞여 있음', miss: '대체로 틀림', unclear: '판정 불가' };
 
-  const preregForm = document.querySelector('[data-prereg-form]');
-  const preregLocked = document.querySelector('[data-prereg-locked]');
-  const preregError = document.querySelector('[data-prereg-error]');
-  const pickerStage = document.querySelector('[data-stage="picker"]');
+  const questionForm = document.querySelector('[data-question-form]');
+  const questionLocked = document.querySelector('[data-question-locked]');
+  const questionError = document.querySelector('[data-question-error]');
+  const castStage = document.querySelector('[data-stage="cast"]');
   const resultStage = document.querySelector('[data-stage="result"]');
   const resultHost = document.querySelector('[data-cast-result]');
+  const guessStage = document.querySelector('[data-stage="guess"]');
+  const guessForm = document.querySelector('[data-guess-form]');
+  const guessLocked = document.querySelector('[data-guess-locked]');
+  const guessError = document.querySelector('[data-guess-error]');
   const saveStatus = document.querySelector('[data-save-status]');
   const exportStatus = document.querySelector('[data-export-status]');
   const recordsHost = document.querySelector('[data-records]');
   const emptyState = document.querySelector('[data-empty]');
-  const dialog = document.querySelector('[data-outcome-dialog]');
-  const outcomeForm = document.querySelector('[data-outcome-form]');
   let currentId = null;
   let deferredInstall = null;
   let tablePromise = null;
@@ -71,6 +74,10 @@
     return record;
   }
 
+  function guessText(record) {
+    return record.guess?.text || record.prereg?.prediction || '';
+  }
+
   function setProgress(n) {
     document.querySelectorAll('[data-progress]').forEach((el) => {
       const step = Number(el.dataset.progress);
@@ -79,56 +86,63 @@
     });
   }
 
-  function renderLocked(record) {
-    preregForm.hidden = true;
-    preregLocked.hidden = false;
-    preregLocked.innerHTML = `
-      <h3>사전등록 잠김</h3>
+  function renderQuestionLocked(record) {
+    questionForm.hidden = true;
+    questionLocked.hidden = false;
+    questionLocked.innerHTML = `
+      <h3>질문 잠김</h3>
       <dl>
         <dt>질문</dt><dd>${esc(record.question)}</dd>
-        <dt>예상 결과</dt><dd>${esc(record.prereg.prediction)}</dd>
       </dl>
-      <p class="lock-time">${esc(localTime(record.prereg.at))}에 잠김 · 수정 불가</p>
+      <p class="lock-time">${esc(localTime(record.question_at))}에 잠김 · 수정 불가</p>
       <button type="button" data-abandon>${record.cast ? '새 질문으로 시작' : '이 기록을 중단하고 새 질문 쓰기'}</button>`;
-    preregLocked.querySelector('[data-abandon]').addEventListener('click', () => {
+    questionLocked.querySelector('[data-abandon]').addEventListener('click', () => {
       if (!record.cast) updateRecord(record.id, { status: 'abandoned', abandoned_at: now() });
       localStorage.removeItem(CURRENT);
       location.reload();
     });
   }
 
-  preregForm.addEventListener('submit', (event) => {
+  function renderGuessLocked(record) {
+    guessForm.hidden = true;
+    guessLocked.hidden = false;
+    guessLocked.innerHTML = `
+      <h3>의견 기록됨</h3>
+      <dl>
+        <dt>내 의견</dt><dd>${esc(record.guess.text)}</dd>
+      </dl>
+      <p class="lock-time">${esc(localTime(record.guess.at))}에 기록 · 수정 불가</p>`;
+  }
+
+  questionForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    preregError.textContent = '';
-    if (!preregForm.reportValidity()) return;
-    const data = new FormData(preregForm);
-    const fields = ['question', 'prediction'];
-    if (fields.some((key) => !String(data.get(key) || '').trim())) {
-      preregError.textContent = '두 칸을 모두 채워 주세요.';
+    questionError.textContent = '';
+    if (!questionForm.reportValidity()) return;
+    const data = new FormData(questionForm);
+    const question = String(data.get('question') || '').trim();
+    if (!question) {
+      questionError.textContent = '질문을 적어 주세요.';
       return;
     }
     const record = {
-      schema: 2,
+      schema: 3,
       id: makeId(),
-      status: 'preregistered',
+      status: 'question',
       created_at: now(),
       updated_at: now(),
-      question: String(data.get('question')).trim(),
-      prereg: {
-        prediction: String(data.get('prediction')).trim(),
-        at: now()
-      },
+      question,
+      question_at: now(),
       cast: null,
       reading: '',
-      outcome: null
+      guess: null
     };
     currentId = record.id;
     saveRecord(record);
     localStorage.setItem(CURRENT, record.id);
-    renderLocked(record);
-    pickerStage.hidden = false;
+    renderQuestionLocked(record);
+    castStage.hidden = false;
     setProgress(2);
-    pickerStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    castStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   async function loadTable() {
@@ -175,7 +189,16 @@
     return ring;
   }
 
-  function buildPicker() {
+  function afterCast(record) {
+    castStage.hidden = true;
+    renderResult(record);
+    resultStage.hidden = false;
+    guessStage.hidden = false;
+    setProgress(3);
+    resultStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function buildTablePicker() {
     const host = document.querySelector('[data-app-picker]');
     const go = host.querySelector('[data-picker-go]');
     const hint = host.querySelector('[data-picker-hint]');
@@ -220,13 +243,9 @@
         if (before) {
           throw new Error(`이 좌표는 ${localTime(before.cast.at)}에 이미 사용했습니다. 새 좌표를 골라 주세요.`);
         }
-        const cast = castDigits(digits, picked.row, picked.col);
-        updateRecord(currentId, { status: 'cast', cast, reading: buildReading(cast) });
-        renderResult(getRecord(currentId));
-        resultStage.hidden = false;
-        pickerStage.hidden = true;
-        setProgress(3);
-        resultStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const cast = castFromTable(digits, picked.row, picked.col);
+        const record = updateRecord(currentId, { status: 'cast', cast, reading: buildReading(cast) });
+        afterCast(record);
       } catch (err) {
         error.textContent = err.message;
         go.disabled = false;
@@ -271,6 +290,66 @@
         reset();
       }
     });
+
+    return { reset };
+  }
+
+  function buildCoinPicker() {
+    const host = document.querySelector('[data-coin-picker]');
+    const rows = host.querySelector('[data-coin-rows]');
+    const go = host.querySelector('[data-coin-go]');
+    const error = host.querySelector('[data-coin-error]');
+    const selects = POSITIONS.map((label) => {
+      const row = document.createElement('label');
+      row.className = 'coin-row';
+      row.innerHTML = `<span>${label}</span><select>
+        <option value="">--</option>
+        <option value="6">6 · 老陰(변)</option>
+        <option value="7">7 · 少陽</option>
+        <option value="8">8 · 少陰</option>
+        <option value="9">9 · 老陽(변)</option>
+      </select>`;
+      rows.appendChild(row);
+      return row.querySelector('select');
+    });
+
+    function checkReady() {
+      go.disabled = selects.some((select) => !select.value);
+    }
+    selects.forEach((select) => select.addEventListener('change', checkReady));
+
+    go.addEventListener('click', () => {
+      error.textContent = '';
+      const values = selects.map((select) => Number(select.value));
+      const cast = castFromCoins(values);
+      const record = updateRecord(currentId, { status: 'cast', cast, reading: buildReading(cast) });
+      afterCast(record);
+    });
+
+    function reset() {
+      selects.forEach((select) => { select.value = ''; });
+      go.disabled = true;
+      error.textContent = '';
+    }
+
+    return { reset };
+  }
+
+  function buildMethodTabs(tablePicker, coinPicker) {
+    const tabs = [...document.querySelectorAll('[data-method]')];
+    const panels = {
+      table: document.querySelector('[data-app-picker]'),
+      coin: document.querySelector('[data-coin-picker]')
+    };
+    tabs.forEach((tab) => tab.addEventListener('click', () => {
+      const method = tab.dataset.method;
+      if (tab.classList.contains('active')) return;
+      tabs.forEach((btn) => btn.classList.toggle('active', btn === tab));
+      panels.table.hidden = method !== 'table';
+      panels.coin.hidden = method !== 'coin';
+      tablePicker.reset();
+      coinPicker.reset();
+    }));
   }
 
   function valueFromFour(chunk) {
@@ -317,18 +396,13 @@
     return { title: '六爻變 — 지괘의 괘사', detail: special, main: result.ben.num === 1 ? '乾 用九' : result.ben.num === 2 ? '坤 用六' : `지괘 ${result.zhi.num} ${result.zhi.name}` };
   }
 
-  function castDigits(digits, row, col) {
-    const rolls = Array.from({ length: 6 }, (_, i) => {
-      const chunk = digits.slice(i * 4, i * 4 + 4);
-      return { position: i + 1, digits: chunk, ...valueFromFour(chunk) };
-    });
-    const values = rolls.map((roll) => roll.value);
+  function finalizeCast(values, source, rolls) {
     const result = readCast(values);
     const rule = readingRule(values, result);
     return {
       at: now(),
-      source: { method: '난수표 방법 B', row, col, digits },
-      rolls,
+      source,
+      rolls: rolls || null,
       values,
       ben: result.ben,
       zhi: result.movingAt.length ? result.zhi : null,
@@ -337,8 +411,21 @@
     };
   }
 
+  function castFromTable(digits, row, col) {
+    const rolls = Array.from({ length: 6 }, (_, i) => {
+      const chunk = digits.slice(i * 4, i * 4 + 4);
+      return { position: i + 1, digits: chunk, ...valueFromFour(chunk) };
+    });
+    const values = rolls.map((roll) => roll.value);
+    return finalizeCast(values, { method: '난수표 방법 B', row, col, digits }, rolls);
+  }
+
+  function castFromCoins(values) {
+    return finalizeCast(values, { method: '동전' });
+  }
+
   function buildReading(cast) {
-    return [cast.rule.title, cast.rule.detail, `主: ${cast.rule.main}`].join('\n');
+    return [`읽을 곳: ${cast.rule.main}`, cast.rule.title, cast.rule.detail].join('\n');
   }
 
   function renderResult(record) {
@@ -346,6 +433,9 @@
     currentId = record.id;
     const cast = record.cast;
     const movingNames = cast.moving.map((pos) => POSITIONS[pos - 1]);
+    const coordLine = cast.source.method === '동전'
+      ? '<p><b>방법</b> 동전 (직접 입력)</p>'
+      : `<p><b>좌표</b> ${cast.source.row}행 ${cast.source.col}열</p><p class="digits-line"><b>숫자열</b> ${esc(cast.source.digits)}</p>`;
     resultHost.innerHTML = `
       <div class="result-summary">
         <div class="hex-panel"><h3>본괘 ${cast.ben.num} ${esc(cast.ben.name)}</h3><div data-ben-hex></div></div>
@@ -355,13 +445,13 @@
       <div class="result-meta">
         <p><b>직접 뽑은 효</b> ${cast.values.join(' · ')} <small>(초효→상효)</small></p>
         <p><b>변효</b> ${movingNames.length ? esc(movingNames.join(' · ')) : '없음'}</p>
-        <p><b>좌표</b> ${cast.source.row}행 ${cast.source.col}열</p>
-        <p class="digits-line"><b>숫자열</b> ${esc(cast.source.digits)}</p>
+        ${coordLine}
       </div>
       <div class="reading-rule">
-        <h3>고변점 해석문</h3>
-        <p class="automatic-reading">${esc(record.reading || buildReading(cast))}</p>
-        <p class="saved-note">점 결과와 함께 이 기기에 자동 저장되었습니다.</p>
+        <h3>고변점 추출문</h3>
+        <p class="reading-target">主: ${esc(cast.rule.main)}</p>
+        <p class="rule-detail">${esc(cast.rule.title)} — ${esc(cast.rule.detail)}</p>
+        <p class="saved-note">위 괘사·효사의 원문·번역은 아래 링크에서 직접 읽고 해석문을 씁니다. 이 규칙 판정은 이 기기에 자동 저장되었습니다.</p>
       </div>
       <p class="source-links"><b>번역·注疏</b> <a href="${TRANS_LINK[cast.ben.num]}" target="_blank" rel="noopener">본괘 ${cast.ben.num}번</a>${cast.zhi ? ` · <a href="${TRANS_LINK[cast.zhi.num]}" target="_blank" rel="noopener">지괘 ${cast.zhi.num}번</a>` : ''}<br><b>현토 원문</b> <a href="${DB_LINK[cast.ben.num]}" target="_blank" rel="noopener">본괘 ${cast.ben.num}번</a>${cast.zhi ? ` · <a href="${DB_LINK[cast.zhi.num]}" target="_blank" rel="noopener">지괘 ${cast.zhi.num}번</a>` : ''}</p>`;
     drawHex(resultHost.querySelector('[data-ben-hex]'), cast.values);
@@ -370,25 +460,28 @@
     }
   }
 
+  guessForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    guessError.textContent = '';
+    if (!guessForm.reportValidity()) return;
+    const data = new FormData(guessForm);
+    const text = String(data.get('guess') || '').trim();
+    if (!text) {
+      guessError.textContent = '의견을 적어 주세요.';
+      return;
+    }
+    const record = updateRecord(currentId, { status: 'answered', guess: { text, at: now() } });
+    renderGuessLocked(record);
+    setProgress(4);
+  });
+
   document.querySelector('[data-copy-packet]').addEventListener('click', async () => {
     const record = getRecord(currentId);
     if (!record?.cast) return;
-    const packet = [
-      `질문: ${record.question}`,
-      `사전등록 시각: ${record.prereg.at}`,
-      `예상 결과: ${record.prereg.prediction}`,
-      '',
-      `난수표 ${record.cast.source.row}행 ${record.cast.source.col}열 → ${record.cast.source.digits}`,
-      `효값: ${record.cast.values.join(' ')} (초효→상효)`,
-      `본괘 ${record.cast.ben.num} ${record.cast.ben.name}`,
-      `변효: ${record.cast.moving.length ? record.cast.moving.map((p) => POSITIONS[p - 1]).join('·') : '없음'}`,
-      record.cast.zhi ? `지괘 ${record.cast.zhi.num} ${record.cast.zhi.name}` : '',
-      '',
-      record.reading || buildReading(record.cast)
-    ].filter((line) => line !== '').join('\n');
+    const packet = `主: ${record.cast.rule.main}`;
     try {
       await navigator.clipboard.writeText(packet);
-      saveStatus.textContent = '질문·예상 결과·점 결과·고변점 해석문을 복사했습니다.';
+      saveStatus.textContent = '고변점 추출문(主)을 복사했습니다.';
     } catch {
       saveStatus.textContent = '자동 복사가 막혔습니다. HTTPS에서 다시 시도해 주세요.';
     }
@@ -399,50 +492,32 @@
     emptyState.hidden = records.length > 0;
     recordsHost.innerHTML = records.map((record, index) => {
       const castName = record.cast ? `${record.cast.ben.num} ${record.cast.ben.name}${record.cast.zhi ? ` → ${record.cast.zhi.num} ${record.cast.zhi.name}` : ''}` : '괘를 뽑기 전';
-      const state = record.outcome ? RATING[record.outcome.rating] : record.status === 'abandoned' ? '중단 기록' : record.cast ? '결과 대기' : '사전등록만';
+      const state = record.status === 'answered' ? '완료'
+        : record.status === 'abandoned' ? '중단 기록'
+        : record.cast ? '의견 대기'
+        : '괘 대기';
+      const guess = guessText(record);
       return `<details class="record"${index === 0 ? ' open' : ''}>
         <summary>
           <span class="record-id">${String(records.length - index).padStart(3, '0')}</span>
           <span class="record-title"><b>${esc(record.question)}</b><small>${esc(castName)} · ${esc(localTime(record.created_at))}</small></span>
-          <span class="record-state${record.outcome ? ' done' : ''}">${esc(state)}</span>
+          <span class="record-state${record.status === 'answered' ? ' done' : ''}">${esc(state)}</span>
         </summary>
         <div class="record-body">
           <dl>
-            <dt>예상 결과</dt><dd>${esc(record.prereg?.prediction)}</dd>
-            ${record.cast ? `<dt>고변점 해석</dt><dd>${esc(record.reading || buildReading(record.cast))}</dd>` : ''}
-            ${record.outcome ? `<dt>실제 사실</dt><dd>${esc(record.outcome.facts)}</dd><dt>판정</dt><dd>${esc(RATING[record.outcome.rating])}</dd>${record.outcome.note ? `<dt>메모</dt><dd>${esc(record.outcome.note)}</dd>` : ''}` : ''}
+            ${record.cast ? `<dt>읽을 곳</dt><dd>${esc(record.cast.rule.main)}</dd>` : ''}
+            ${guess ? `<dt>내 의견</dt><dd>${esc(guess)}</dd>` : ''}
+            ${record.outcome ? `<dt>실제 사실</dt><dd>${esc(record.outcome.facts)}</dd><dt>판정</dt><dd>${esc(RATING[record.outcome.rating] || record.outcome.rating)}</dd>${record.outcome.note ? `<dt>메모</dt><dd>${esc(record.outcome.note)}</dd>` : ''}` : ''}
           </dl>
-          ${record.cast && !record.outcome ? `<div class="button-row"><button type="button" data-outcome-id="${esc(record.id)}">실제 결과 기록</button></div>` : ''}
         </div>
       </details>`;
     }).join('');
-    recordsHost.querySelectorAll('[data-outcome-id]').forEach((button) => {
-      button.addEventListener('click', () => openOutcome(button.dataset.outcomeId));
-    });
   }
-
-  function openOutcome(id) {
-    outcomeForm.reset();
-    outcomeForm.elements.id.value = id;
-    if (typeof dialog.showModal === 'function') dialog.showModal();
-    else dialog.setAttribute('open', '');
-  }
-
-  document.querySelector('[data-close-dialog]').addEventListener('click', () => dialog.close());
-  outcomeForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    if (!outcomeForm.reportValidity()) return;
-    const data = new FormData(outcomeForm);
-    updateRecord(String(data.get('id')), {
-      outcome: { recorded_at: now(), facts: String(data.get('facts')).trim(), rating: String(data.get('rating')), note: String(data.get('note')).trim() }
-    });
-    dialog.close();
-    setProgress(4);
-  });
 
   document.querySelector('[data-export]').addEventListener('click', async () => {
-    const filename = `juyeok-records-${new Date().toISOString().slice(0, 10)}.json`;
-    const json = JSON.stringify({ schema: 2, exported_at: now(), records: loadRecords() }, null, 2);
+    const stamp = new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+    const filename = `juyeok-records-${stamp}.json`;
+    const json = JSON.stringify({ schema: 3, exported_at: now(), records: loadRecords() }, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const file = new File([blob], filename, { type: 'application/json' });
     exportStatus.textContent = '';
@@ -482,11 +557,11 @@
     if (!file) return;
     try {
       const data = JSON.parse(await file.text());
-      if (![1, 2].includes(data.schema) || !Array.isArray(data.records)) throw new Error('이 앱의 기록 파일 형식이 아닙니다.');
+      if (![1, 2, 3].includes(data.schema) || !Array.isArray(data.records)) throw new Error('이 앱의 기록 파일 형식이 아닙니다.');
       const current = loadRecords();
       const byId = new Map(current.map((record) => [record.id, record]));
       data.records.forEach((record) => {
-        if (!record.id || !record.prereg || !record.question) throw new Error('필수 항목이 없는 기록이 있습니다.');
+        if (!record.id || !record.question) throw new Error('필수 항목이 없는 기록이 있습니다.');
         if (!byId.has(record.id)) byId.set(record.id, record);
       });
       saveRecords([...byId.values()].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))));
@@ -537,20 +612,24 @@
     });
     if (migrated) saveRecords(records);
     renderRecords();
-    buildPicker();
+    const tablePicker = buildTablePicker();
+    const coinPicker = buildCoinPicker();
+    buildMethodTabs(tablePicker, coinPicker);
     const savedId = localStorage.getItem(CURRENT);
     const current = savedId && getRecord(savedId);
-    if (current?.status === 'preregistered' && !current.cast) {
+    if (current?.status === 'question' && !current.cast) {
       currentId = current.id;
-      renderLocked(current);
-      pickerStage.hidden = false;
+      renderQuestionLocked(current);
+      castStage.hidden = false;
       setProgress(2);
     } else if (current?.cast) {
       currentId = current.id;
-      renderLocked(current);
+      renderQuestionLocked(current);
       renderResult(current);
       resultStage.hidden = false;
-      setProgress(current.outcome ? 4 : 3);
+      guessStage.hidden = false;
+      if (current.guess) renderGuessLocked(current);
+      setProgress(current.guess ? 4 : 3);
     }
     try {
       await loadTable();
