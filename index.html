@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#1c2340">
-  <meta name="description" content="질문과 예상을 먼저 잠그고, 난수표 시초법으로 괘를 뽑아 기록하는 주역 웹앱">
+  <meta name="description" content="질문과 예상 결과를 먼저 잠그고, 난수표 시초법으로 괘를 뽑아 기록하는 주역 웹앱">
   <title>주역 — 질문부터 결과까지</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
@@ -26,7 +26,7 @@
   <section class="hero">
     <p class="eyebrow">Question → Preregister → Cast → Review</p>
     <h1>괘를 보기 전에<br>예상을 잠급니다.</h1>
-    <p class="lede">질문과 반증 조건을 먼저 고정한 다음 좌표를 고릅니다. 괘가 나온 뒤에는 원래 예상을 바꿀 수 없습니다.</p>
+    <p class="lede">질문과 예상 결과를 먼저 고정한 다음 좌표를 고릅니다. 괘가 나온 뒤에는 고변점 방식으로 정해진 해석문을 자동으로 저장합니다.</p>
     <div class="privacy-note"><b>개인정보 보호:</b> 질문과 기록은 이 기기의 브라우저에만 저장되며 GitHub로 전송되지 않습니다.</div>
   </section>
 
@@ -47,16 +47,9 @@
         <textarea name="question" required placeholder="예: 지금 하는 연구 주제를 계속 밀고 나가는 것이 어떤 때인가?"></textarea>
         <small>예/아니오형은 “~하는 것이 지금 어떤 때인가?”처럼 상황을 묻는 문장으로 바꿉니다.</small>
       </label>
-      <label>관측 계획
-        <textarea name="plan" required placeholder="언제까지 무엇을 관찰할 것인가?"></textarea>
-      </label>
-      <label>내 예상
+      <label>예상 결과
         <textarea name="prediction" required placeholder="괘를 보기 전, 실제로 어떤 일이 일어날 것 같은가?"></textarea>
       </label>
-      <label>반증 조건
-        <textarea name="falsifier" required placeholder="무엇이 관찰되면 이 예상이 틀렸다고 할 것인가?"></textarea>
-      </label>
-      <label class="check-row"><input type="checkbox" name="confirm" required> 괘를 본 뒤에는 위 내용을 고치지 않겠습니다.</label>
       <p class="form-error" data-prereg-error role="alert"></p>
       <button class="primary" type="submit">사전등록 잠그기</button>
     </form>
@@ -85,12 +78,8 @@
       <div><h2>괘와 읽을 문장</h2><p>이제 사전등록과 나란히 놓고 읽습니다.</p></div>
     </div>
     <div data-cast-result></div>
-    <label class="interpretation-field">내 해석문
-      <textarea data-interpretation placeholder="질문 · 괘 · 근거 · 이미지 · 적용을 한 문단으로 적어 보세요."></textarea>
-    </label>
     <div class="button-row">
-      <button class="primary" type="button" data-save-interpretation>해석문 저장</button>
-      <button type="button" data-copy-packet>해석용 묶음 복사</button>
+      <button type="button" data-copy-packet>결과 복사</button>
     </div>
     <p class="save-status" data-save-status aria-live="polite"></p>
   </section>
@@ -105,6 +94,7 @@
       <label class="import-label">JSON 가져오기<input type="file" accept="application/json,.json" data-import></label>
       <button class="danger-text" type="button" data-clear-all>기록 모두 지우기</button>
     </div>
+    <p class="save-status" data-export-status aria-live="polite"></p>
     <p class="empty-state" data-empty>아직 저장된 점 기록이 없습니다.</p>
     <div class="records" data-records></div>
   </section>

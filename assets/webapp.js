@@ -17,8 +17,8 @@
   const pickerStage = document.querySelector('[data-stage="picker"]');
   const resultStage = document.querySelector('[data-stage="result"]');
   const resultHost = document.querySelector('[data-cast-result]');
-  const interpretation = document.querySelector('[data-interpretation]');
   const saveStatus = document.querySelector('[data-save-status]');
+  const exportStatus = document.querySelector('[data-export-status]');
   const recordsHost = document.querySelector('[data-records]');
   const emptyState = document.querySelector('[data-empty]');
   const dialog = document.querySelector('[data-outcome-dialog]');
@@ -86,9 +86,7 @@
       <h3>사전등록 잠김</h3>
       <dl>
         <dt>질문</dt><dd>${esc(record.question)}</dd>
-        <dt>관측 계획</dt><dd>${esc(record.prereg.observation_plan)}</dd>
-        <dt>내 예상</dt><dd>${esc(record.prereg.prediction)}</dd>
-        <dt>반증 조건</dt><dd>${esc(record.prereg.falsifier)}</dd>
+        <dt>예상 결과</dt><dd>${esc(record.prereg.prediction)}</dd>
       </dl>
       <p class="lock-time">${esc(localTime(record.prereg.at))}에 잠김 · 수정 불가</p>
       <button type="button" data-abandon>${record.cast ? '새 질문으로 시작' : '이 기록을 중단하고 새 질문 쓰기'}</button>`;
@@ -104,26 +102,24 @@
     preregError.textContent = '';
     if (!preregForm.reportValidity()) return;
     const data = new FormData(preregForm);
-    const fields = ['question', 'plan', 'prediction', 'falsifier'];
+    const fields = ['question', 'prediction'];
     if (fields.some((key) => !String(data.get(key) || '').trim())) {
-      preregError.textContent = '네 칸을 모두 채워 주세요.';
+      preregError.textContent = '두 칸을 모두 채워 주세요.';
       return;
     }
     const record = {
-      schema: 1,
+      schema: 2,
       id: makeId(),
       status: 'preregistered',
       created_at: now(),
       updated_at: now(),
       question: String(data.get('question')).trim(),
       prereg: {
-        observation_plan: String(data.get('plan')).trim(),
         prediction: String(data.get('prediction')).trim(),
-        falsifier: String(data.get('falsifier')).trim(),
         at: now()
       },
       cast: null,
-      interpretation: '',
+      reading: '',
       outcome: null
     };
     currentId = record.id;
@@ -225,7 +221,7 @@
           throw new Error(`이 좌표는 ${localTime(before.cast.at)}에 이미 사용했습니다. 새 좌표를 골라 주세요.`);
         }
         const cast = castDigits(digits, picked.row, picked.col);
-        updateRecord(currentId, { status: 'cast', cast });
+        updateRecord(currentId, { status: 'cast', cast, reading: buildReading(cast) });
         renderResult(getRecord(currentId));
         resultStage.hidden = false;
         pickerStage.hidden = true;
@@ -341,6 +337,10 @@
     };
   }
 
+  function buildReading(cast) {
+    return [cast.rule.title, cast.rule.detail, `主: ${cast.rule.main}`].join('\n');
+  }
+
   function renderResult(record) {
     if (!record?.cast) return;
     currentId = record.id;
@@ -359,23 +359,16 @@
         <p class="digits-line"><b>숫자열</b> ${esc(cast.source.digits)}</p>
       </div>
       <div class="reading-rule">
-        <h3>${esc(cast.rule.title)}</h3>
-        <p>${esc(cast.rule.detail)}</p>
-        <p><b>主:</b> ${esc(cast.rule.main)}</p>
+        <h3>고변점 해석문</h3>
+        <p class="automatic-reading">${esc(record.reading || buildReading(cast))}</p>
+        <p class="saved-note">점 결과와 함께 이 기기에 자동 저장되었습니다.</p>
       </div>
       <p class="source-links"><b>번역·注疏</b> <a href="${TRANS_LINK[cast.ben.num]}" target="_blank" rel="noopener">본괘 ${cast.ben.num}번</a>${cast.zhi ? ` · <a href="${TRANS_LINK[cast.zhi.num]}" target="_blank" rel="noopener">지괘 ${cast.zhi.num}번</a>` : ''}<br><b>현토 원문</b> <a href="${DB_LINK[cast.ben.num]}" target="_blank" rel="noopener">본괘 ${cast.ben.num}번</a>${cast.zhi ? ` · <a href="${DB_LINK[cast.zhi.num]}" target="_blank" rel="noopener">지괘 ${cast.zhi.num}번</a>` : ''}</p>`;
     drawHex(resultHost.querySelector('[data-ben-hex]'), cast.values);
     if (cast.zhi) {
       drawHex(resultHost.querySelector('[data-zhi-hex]'), cast.values.map((value) => value === 6 ? 7 : value === 9 ? 8 : value));
     }
-    interpretation.value = record.interpretation || '';
   }
-
-  document.querySelector('[data-save-interpretation]').addEventListener('click', () => {
-    if (!currentId) return;
-    updateRecord(currentId, { interpretation: interpretation.value.trim() });
-    saveStatus.textContent = `이 기기에 저장했습니다 · ${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}`;
-  });
 
   document.querySelector('[data-copy-packet]').addEventListener('click', async () => {
     const record = getRecord(currentId);
@@ -383,22 +376,19 @@
     const packet = [
       `질문: ${record.question}`,
       `사전등록 시각: ${record.prereg.at}`,
-      `관측 계획: ${record.prereg.observation_plan}`,
-      `괘 전 예상: ${record.prereg.prediction}`,
-      `반증 조건: ${record.prereg.falsifier}`,
+      `예상 결과: ${record.prereg.prediction}`,
       '',
       `난수표 ${record.cast.source.row}행 ${record.cast.source.col}열 → ${record.cast.source.digits}`,
       `효값: ${record.cast.values.join(' ')} (초효→상효)`,
       `본괘 ${record.cast.ben.num} ${record.cast.ben.name}`,
       `변효: ${record.cast.moving.length ? record.cast.moving.map((p) => POSITIONS[p - 1]).join('·') : '없음'}`,
       record.cast.zhi ? `지괘 ${record.cast.zhi.num} ${record.cast.zhi.name}` : '',
-      `고변점: ${record.cast.rule.title} / 主 ${record.cast.rule.main}`,
       '',
-      '위 사전등록은 괘를 보기 전에 잠겼습니다. 《주역정의》의 해당 經文·注疏와 大象을 확인하고, 이름의 인상에서 출발하지 말고 한국어 해석문을 작성해 주세요.'
+      record.reading || buildReading(record.cast)
     ].filter((line) => line !== '').join('\n');
     try {
       await navigator.clipboard.writeText(packet);
-      saveStatus.textContent = '해석용 묶음을 복사했습니다.';
+      saveStatus.textContent = '질문·예상 결과·점 결과·고변점 해석문을 복사했습니다.';
     } catch {
       saveStatus.textContent = '자동 복사가 막혔습니다. HTTPS에서 다시 시도해 주세요.';
     }
@@ -418,10 +408,8 @@
         </summary>
         <div class="record-body">
           <dl>
-            <dt>관측 계획</dt><dd>${esc(record.prereg?.observation_plan)}</dd>
-            <dt>괘 전 예상</dt><dd>${esc(record.prereg?.prediction)}</dd>
-            <dt>반증 조건</dt><dd>${esc(record.prereg?.falsifier)}</dd>
-            ${record.interpretation ? `<dt>내 해석</dt><dd>${esc(record.interpretation)}</dd>` : ''}
+            <dt>예상 결과</dt><dd>${esc(record.prereg?.prediction)}</dd>
+            ${record.cast ? `<dt>고변점 해석</dt><dd>${esc(record.reading || buildReading(record.cast))}</dd>` : ''}
             ${record.outcome ? `<dt>실제 사실</dt><dd>${esc(record.outcome.facts)}</dd><dt>판정</dt><dd>${esc(RATING[record.outcome.rating])}</dd>${record.outcome.note ? `<dt>메모</dt><dd>${esc(record.outcome.note)}</dd>` : ''}` : ''}
           </dl>
           ${record.cast && !record.outcome ? `<div class="button-row"><button type="button" data-outcome-id="${esc(record.id)}">실제 결과 기록</button></div>` : ''}
@@ -452,14 +440,41 @@
     setProgress(4);
   });
 
-  document.querySelector('[data-export]').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify({ schema: 1, exported_at: now(), records: loadRecords() }, null, 2)], { type: 'application/json' });
+  document.querySelector('[data-export]').addEventListener('click', async () => {
+    const filename = `juyeok-records-${new Date().toISOString().slice(0, 10)}.json`;
+    const json = JSON.stringify({ schema: 2, exported_at: now(), records: loadRecords() }, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const file = new File([blob], filename, { type: 'application/json' });
+    exportStatus.textContent = '';
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: '주역 기록 JSON', files: [file] });
+        exportStatus.textContent = '공유 시트에서 JSON 파일을 내보냈습니다.';
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        exportStatus.textContent = '내보내기를 취소했습니다.';
+        return;
+      }
+    }
+    const isiOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isiOS) {
+      try {
+        await navigator.clipboard.writeText(json);
+        exportStatus.textContent = '파일 공유를 지원하지 않아 JSON을 클립보드에 복사했습니다.';
+      } catch {
+        exportStatus.textContent = 'Safari에서 내보내지 못했습니다. 공유 권한을 확인해 주세요.';
+      }
+      return;
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `juyeok-records-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+    exportStatus.textContent = 'JSON 파일을 내려받았습니다.';
   });
 
   document.querySelector('[data-import]').addEventListener('change', async (event) => {
@@ -467,7 +482,7 @@
     if (!file) return;
     try {
       const data = JSON.parse(await file.text());
-      if (data.schema !== 1 || !Array.isArray(data.records)) throw new Error('이 앱의 기록 파일 형식이 아닙니다.');
+      if (![1, 2].includes(data.schema) || !Array.isArray(data.records)) throw new Error('이 앱의 기록 파일 형식이 아닙니다.');
       const current = loadRecords();
       const byId = new Map(current.map((record) => [record.id, record]));
       data.records.forEach((record) => {
@@ -511,6 +526,16 @@
 
   async function init() {
     updateNetwork();
+    const records = loadRecords();
+    let migrated = false;
+    records.forEach((record) => {
+      if (record.cast && !record.reading) {
+        record.reading = buildReading(record.cast);
+        record.updated_at = now();
+        migrated = true;
+      }
+    });
+    if (migrated) saveRecords(records);
     renderRecords();
     buildPicker();
     const savedId = localStorage.getItem(CURRENT);
