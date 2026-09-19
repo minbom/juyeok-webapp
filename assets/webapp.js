@@ -91,9 +91,9 @@
         <dt>반증 조건</dt><dd>${esc(record.prereg.falsifier)}</dd>
       </dl>
       <p class="lock-time">${esc(localTime(record.prereg.at))}에 잠김 · 수정 불가</p>
-      <button type="button" data-abandon>이 기록을 중단하고 새 질문 쓰기</button>`;
+      <button type="button" data-abandon>${record.cast ? '새 질문으로 시작' : '이 기록을 중단하고 새 질문 쓰기'}</button>`;
     preregLocked.querySelector('[data-abandon]').addEventListener('click', () => {
-      updateRecord(record.id, { status: 'abandoned', abandoned_at: now() });
+      if (!record.cast) updateRecord(record.id, { status: 'abandoned', abandoned_at: now() });
       localStorage.removeItem(CURRENT);
       location.reload();
     });
