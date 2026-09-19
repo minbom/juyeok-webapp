@@ -1,0 +1,14 @@
+.DS_Store
+.claude/
+
+# 개인 질문·결과와 작업 기록은 공개 저장소에 올리지 않는다.
+readings/
+logs/
+learning-records/
+NOTES.md
+AGENTS.md
+reference/backup/
+
+# 로컬 도구 산출물
+__pycache__/
+*.pyc

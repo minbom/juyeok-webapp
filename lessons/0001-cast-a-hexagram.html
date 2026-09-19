@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>여섯 번 던져서, 아래에서 위로</title><link rel="stylesheet" href="../assets/course.css"></head>
+<body><main>
+  <p class="eyebrow">Lesson 1 · 약 8분</p>
+  <h1>여섯 번 던져서, 아래에서 위로</h1>
+  <p class="lede">오늘의 한 가지 성과: 동전 세 개로 여섯 효를 뽑아 <strong>본괘(本卦)를 정확히 그리고, 변효를 표시한다.</strong></p>
+
+  <div class="goal"><strong>왜 이것부터인가</strong><br><a href="../MISSION.md">MISSION</a>은 "직접 점을 쳐서 해석하기"입니다. 해석은 <em>읽을 대상</em>이 있어야 시작됩니다. 그 대상을 만들어 내는 것 — 여섯 효를 뽑아 괘 하나를 손에 쥐는 것 — 이 파이프라인의 첫 칸이고, 오늘 그것만 합니다. 괘의 <em>이름</em>을 찾는 일은 Lesson 2, 그 괘를 <em>읽는</em> 일은 그다음입니다.</div>
+
+  <h2>1. 최소 단위는 효(爻)다</h2>
+  <p>주역의 부품은 딱 두 종류입니다. 이어진 막대인 <strong>양효(陽爻)</strong>와 가운데가 끊긴 <strong>음효(陰爻)</strong>. 이 둘을 여섯 개 쌓은 것이 하나의 괘(卦)이고, 쌓는 방법은 2<sup>6</sup> = 64가지 — 그래서 64괘입니다.</p>
+  <div class="hex">
+    <div class="hex-row"><span class="hex-pos">양효</span><span class="yao yang"></span><span class="hex-note">이어진 막대</span></div>
+    <div class="hex-row"><span class="hex-pos">음효</span><span class="yao yin"></span><span class="hex-note">가운데가 끊긴 막대</span></div>
+  </div>
+
+  <h2>2. 동전 세 개가 만드는 네 가지 값</h2>
+  <p>동전 세 개를 한 번에 던집니다. <strong>앞면은 3점, 뒷면은 2점</strong>. 세 개를 더하면 6·7·8·9 중 하나가 나옵니다.<sup><a href="https://en.wikipedia.org/wiki/I_Ching_divination">1</a></sup> 이것이 효 하나입니다.</p>
+  <table class="mini-table">
+    <thead><tr><th>합계</th><th>이름</th><th>모양</th><th>변하는가</th></tr></thead>
+    <tbody>
+      <tr><td><b>6</b> (뒤·뒤·뒤)</td><td class="hanja">노음 <small>老陰</small></td><td>음효</td><td><strong>변한다</strong> → 양이 된다</td></tr>
+      <tr><td><b>7</b> (앞·뒤·뒤)</td><td class="hanja">소양 <small>少陽</small></td><td>양효</td><td>변하지 않는다</td></tr>
+      <tr><td><b>8</b> (앞·앞·뒤)</td><td class="hanja">소음 <small>少陰</small></td><td>음효</td><td>변하지 않는다</td></tr>
+      <tr><td><b>9</b> (앞·앞·앞)</td><td class="hanja">노양 <small>老陽</small></td><td>양효</td><td><strong>변한다</strong> → 음이 된다</td></tr>
+    </tbody>
+  </table>
+  <p>핵심은 <strong>음양 두 종류가 아니라 네 종류</strong>라는 점입니다. 음효라도 "그냥 음"(8)과 "곧 양으로 넘어갈 음"(6)이 다릅니다. 6과 9처럼 넘어가기 직전인 효를 <strong>변효(變爻)</strong>라 부르고, 그림에 표시해 둡니다 — 노양은 <span style="color:#a3473b;font-weight:700">○</span>, 노음은 <span style="color:#a3473b;font-weight:700">✕</span>.</p>
+
+  <div class="callout warning"><strong>앞뒷면 규약은 한 번 정하면 절대 섞지 않는다.</strong><br>전통마다 동전의 어느 면을 양(3)으로 볼지가 다릅니다. 이 워크스페이스는 <strong>앞면 = 3</strong>으로 고정합니다. 뒤집으면 6↔9, 7↔8이 통째로 바뀌어 <em>정반대의 괘</em>가 나옵니다. 쓰는 동전을 정하고, 어느 쪽이 앞인지 적어 두세요.</div>
+
+  <h2>3. 그리는 순서: 아래에서 위로</h2>
+  <p>첫 번째로 던져 얻은 효가 <strong>맨 아래</strong>에 놓입니다. 두 번째가 그 위, 여섯 번째가 맨 꼭대기.<sup><a href="https://en.wikipedia.org/wiki/I_Ching_divination">1</a></sup> 자리 이름도 아래부터 <strong>초효 · 2효 · 3효 · 4효 · 5효 · 상효</strong>입니다. 글은 위에서 아래로 읽는 데 익숙하니, 여기서 실수가 가장 많이 납니다.</p>
+  <p>아래는 6·9·8·7·8·7 순서로 뽑았을 때의 그림입니다. 변효 두 개(초효의 6, 2효의 9)에 표시가 붙어 있습니다.</p>
+  <div class="hex" id="demo-hex"></div>
+
+  <h2>4. 확률로 본 두 점법 <span style="font-weight:400;color:#666f8a">(통계 배경이 있으니 짧게)</span></h2>
+  <p>동전법 말고 원래의 <strong>시초법</strong>(산가지 50개를 세 번씩 갈라 세는, 훨씬 긴 절차)이 있습니다. 두 방법은 같은 6·7·8·9를 주지만 <em>확률 분포가 다릅니다</em>.<sup><a href="https://www.biroco.com/yijing/prob.htm">2</a></sup></p>
+  <table class="mini-table">
+    <thead><tr><th>효값</th><th>시초법</th><th>동전법</th></tr></thead>
+    <tbody>
+      <tr><td>6 (노음, 변효)</td><td>1/16 = 6.25%</td><td>1/8 = 12.5%</td></tr>
+      <tr><td>7 (소양)</td><td>5/16 = 31.25%</td><td>3/8 = 37.5%</td></tr>
+      <tr><td>8 (소음)</td><td>7/16 = 43.75%</td><td>3/8 = 37.5%</td></tr>
+      <tr><td>9 (노양, 변효)</td><td>3/16 = 18.75%</td><td>1/8 = 12.5%</td></tr>
+    </tbody>
+  </table>
+  <p>재미있는 건 <strong>변효가 나올 총확률은 두 방법이 똑같이 1/4</strong>이라는 점입니다(시초 1/16+3/16, 동전 1/8+1/8). 달라지는 건 변효의 <em>총량</em>이 아니라 <em>방향</em>입니다 — 시초법에서는 변하는 효가 양일 확률이 음일 확률의 세 배지만, 동전법에서는 둘이 같습니다. 그래서 동전법은 절차가 짧은 대신, 전통이 담아 둔 "양이 먼저 움직인다"는 비대칭을 잃습니다. 오늘은 동전법으로 시작하고, 시초법은 나중에 다룹니다.</p>
+
+  <h2>5. 직접 뽑아 보기</h2>
+  <p>버튼을 누르면 동전 세 개를 던집니다. 여섯 번 누르면 본괘가 완성됩니다. <strong>먼저 질문을 하나 정하세요</strong> — 예/아니오로 답이 갈리는 질문보다, "이 일을 이렇게 진행하면 어떤 상황인가"처럼 상황을 묻는 질문이 주역에 맞습니다.</p>
+  <section class="caster" data-caster>
+    <div class="coins"></div>
+    <div class="hex" data-hex></div>
+    <p class="caster-status"></p>
+    <p style="margin-top:1rem"><button data-throw type="button">동전 세 개 던지기</button> <button data-reset type="button">처음부터</button></p>
+  </section>
+
+  <h2>6. 바로 확인하기</h2>
+  <section class="quiz" data-quiz>
+    <strong>동전 세 개를 던져 앞·뒤·앞이 나왔다. 이 효는 무엇인가?</strong>
+    <div class="choices">
+      <button data-correct="true" data-good="정답입니다. 3+2+3 = 8, 소음입니다. 음효이고 변효가 아니므로 아무 표시도 붙이지 않습니다." data-again="">8 — 소음, 음이며 안 변한다</button>
+      <button data-correct="false" data-again="합계를 다시 세어 보세요. 앞면 두 개(3+3)와 뒷면 한 개(2)는 8입니다. 7은 앞면이 하나일 때 나옵니다." data-good="">7 — 소양, 양이며 안 변한다</button>
+      <button data-correct="false" data-again="9는 세 개 모두 앞면(3+3+3)일 때만 나옵니다. 여기서는 뒷면이 하나 섞여 있습니다." data-good="">9 — 노양, 양이며 곧 변한다</button>
+      <button data-correct="false" data-again="6은 세 개 모두 뒷면(2+2+2)일 때만 나옵니다. 여기서는 앞면이 두 개입니다." data-good="">6 — 노음, 음이며 곧 변한다</button>
+    </div><div class="feedback" aria-live="polite">답을 고르면 즉시 피드백이 나타납니다.</div>
+  </section>
+
+  <section class="quiz" data-quiz style="margin-top:1rem">
+    <strong>네 번째로 던져 얻은 효는 괘의 어디에 그리는가?</strong>
+    <div class="choices">
+      <button data-correct="true" data-good="정답입니다. 던진 순서가 곧 아래에서부터의 자리 순서이고, 네 번째 효의 이름은 그대로 '4효'입니다." data-again="">아래에서 넷째 자리 (4효)</button>
+      <button data-correct="false" data-again="위에서부터 세면 뒤집힙니다. 주역은 언제나 아래에서 위로 쌓습니다 — 위에서 넷째는 3효입니다." data-good="">위에서 넷째 자리 (3효)</button>
+      <button data-correct="false" data-again="맨 위(상효)는 여섯 번째로 던진 효의 자리입니다. 네 번째 효는 아래에서 넷째로 갑니다." data-good="">위에서 둘째 자리 (5효)</button>
+    </div><div class="feedback" aria-live="polite">답을 고르면 즉시 피드백이 나타납니다.</div>
+  </section>
+
+  <h2>오늘의 적용 과제</h2>
+  <p>실제로 궁금한 것을 하나 정해 질문을 만들고, <strong>위 시뮬레이터로(또는 진짜 동전 세 개로) 여섯 효를 뽑아</strong> 보세요. 그리고 다음 세 가지를 저에게 보내 주세요.</p>
+  <ol class="steps">
+    <li>정한 질문 한 문장.</li>
+    <li>여섯 효의 값을 <strong>초효부터 순서대로</strong> 나열 (예: 8, 6, 7, 7, 9, 8).</li>
+    <li>그중 <strong>변효가 몇 번째 자리에 몇 개</strong> 있는지.</li>
+  </ol>
+  <p>보내 주시면 바로 피드백하고, 그 괘를 그대로 Lesson 2(괘의 이름 찾기)의 재료로 쓰겠습니다.</p>
+
+  <h2>원문 한 편</h2>
+  <p><a href="https://db.cyberseodang.or.kr/front/alphaList/BookMain.do?tab=tab1_01&bnCode=jti_1a0201&titleId=C1">동양고전종합DB — 《주역전의(周易傳義)》 (전통문화연구회, 성백효 역)</a>를 한 번 열어 보세요. 이 워크스페이스가 앞으로 계속 쓸 기본 텍스트입니다. 정이천의 《역전》과 주자의 《본의》를 합친, 조선의 표준 판본이며 원문·현토·번역을 무료로 볼 수 있습니다. 오늘은 읽지 말고 <strong>1번 乾(건)괘가 어떻게 생겼는지 화면 구조만</strong> 확인하면 충분합니다.</p>
+
+  <p class="next"><a href="../reference/casting-and-line-values.html">참고 문서: 점 뽑기 요약 카드 (인쇄용)</a> · <a href="../MISSION.md">MISSION</a> · <a href="../RESOURCES.md">RESOURCES</a></p>
+  <p class="next">막히거나 헷갈리는 점은 언제든 저(에이전트)에게 물어보세요. 해석이 맞는지 같이 봐 드립니다.</p>
+  <script src="../assets/quiz.js"></script>
+  <script src="../assets/hexagram.js"></script>
+  <script>drawHex(document.getElementById('demo-hex'), [6, 9, 8, 7, 8, 7]);</script>
+</main></body></html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#1c2340">
+  <meta name="description" content="질문과 예상을 먼저 잠그고, 난수표 시초법으로 괘를 뽑아 기록하는 주역 웹앱">
+  <title>주역 — 질문부터 결과까지</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/app-icon-192.png">
+  <link rel="stylesheet" href="assets/course.css">
+  <link rel="stylesheet" href="assets/webapp.css">
+</head>
+<body>
+<header class="app-bar">
+  <a class="brand" href="./" aria-label="주역 웹앱 처음으로">易</a>
+  <div>
+    <strong>주역 실전 기록</strong>
+    <span data-network>기기 안에만 저장</span>
+  </div>
+  <button class="quiet" type="button" data-install hidden>앱 설치</button>
+</header>
+
+<main class="app-shell">
+  <section class="hero">
+    <p class="eyebrow">Question → Preregister → Cast → Review</p>
+    <h1>괘를 보기 전에<br>예상을 잠급니다.</h1>
+    <p class="lede">질문과 반증 조건을 먼저 고정한 다음 좌표를 고릅니다. 괘가 나온 뒤에는 원래 예상을 바꿀 수 없습니다.</p>
+    <div class="privacy-note"><b>개인정보 보호:</b> 질문과 기록은 이 기기의 브라우저에만 저장되며 GitHub로 전송되지 않습니다.</div>
+  </section>
+
+  <nav class="progress" aria-label="진행 단계">
+    <span class="active" data-progress="1"><b>1</b> 사전등록</span>
+    <span data-progress="2"><b>2</b> 좌표</span>
+    <span data-progress="3"><b>3</b> 괘</span>
+    <span data-progress="4"><b>4</b> 기록</span>
+  </nav>
+
+  <section class="flow-card" data-stage="prereg">
+    <div class="section-head">
+      <span class="step-badge">1</span>
+      <div><h2>질문과 예상</h2><p>아직 난수표와 괘는 보이지 않습니다.</p></div>
+    </div>
+    <form class="app-form" data-prereg-form>
+      <label>질문
+        <textarea name="question" required placeholder="예: 지금 하는 연구 주제를 계속 밀고 나가는 것이 어떤 때인가?"></textarea>
+      </label>
+      <label>관측 계획
+        <textarea name="plan" required placeholder="언제까지 무엇을 관찰할 것인가?"></textarea>
+      </label>
+      <label>내 예상
+        <textarea name="prediction" required placeholder="괘를 보기 전, 실제로 어떤 일이 일어날 것 같은가?"></textarea>
+      </label>
+      <label>반증 조건
+        <textarea name="falsifier" required placeholder="무엇이 관찰되면 이 예상이 틀렸다고 할 것인가?"></textarea>
+      </label>
+      <label class="check-row"><input type="checkbox" name="confirm" required> 괘를 본 뒤에는 위 내용을 고치지 않겠습니다.</label>
+      <p class="form-error" data-prereg-error role="alert"></p>
+      <button class="primary" type="submit">사전등록 잠그기</button>
+    </form>
+    <div class="locked-card" data-prereg-locked hidden></div>
+  </section>
+
+  <section class="flow-card" data-stage="picker" hidden>
+    <div class="section-head">
+      <span class="step-badge">2</span>
+      <div><h2>난수표 좌표</h2><p>버튼을 누르는 순간의 타이밍으로 행과 열을 멈춥니다.</p></div>
+    </div>
+    <div class="picker app-picker" data-app-picker>
+      <div class="picker-dials">
+        <div class="dial" data-dial="row"><span class="dial-label">행</span><b class="dial-num">--</b><span class="dial-range">1~40</span></div>
+        <div class="dial" data-dial="col"><span class="dial-label">열</span><b class="dial-num">--</b><span class="dial-range">1~50</span></div>
+      </div>
+      <button class="picker-go primary" type="button" data-picker-go>시작</button>
+      <p class="picker-hint" data-picker-hint>행을 멈춘 다음, 열을 멈춥니다.</p>
+      <p class="form-error" data-picker-error role="alert"></p>
+    </div>
+  </section>
+
+  <section class="flow-card result-card" data-stage="result" hidden>
+    <div class="section-head">
+      <span class="step-badge">3</span>
+      <div><h2>괘와 읽을 문장</h2><p>이제 사전등록과 나란히 놓고 읽습니다.</p></div>
+    </div>
+    <div data-cast-result></div>
+    <label class="interpretation-field">내 해석문
+      <textarea data-interpretation placeholder="질문 · 괘 · 근거 · 이미지 · 적용을 한 문단으로 적어 보세요."></textarea>
+    </label>
+    <div class="button-row">
+      <button class="primary" type="button" data-save-interpretation>해석문 저장</button>
+      <button type="button" data-copy-packet>해석용 묶음 복사</button>
+    </div>
+    <p class="save-status" data-save-status aria-live="polite"></p>
+  </section>
+
+  <section class="records-section" aria-labelledby="records-title">
+    <div class="section-head records-head">
+      <span class="step-badge">4</span>
+      <div><h2 id="records-title">기록과 실제 결과</h2><p>나중에 돌아와 사실을 붙이고, 예상이 견뎠는지 확인합니다.</p></div>
+    </div>
+    <div class="record-actions">
+      <button type="button" data-export>JSON 내보내기</button>
+      <label class="import-label">JSON 가져오기<input type="file" accept="application/json,.json" data-import></label>
+      <button class="danger-text" type="button" data-clear-all>기록 모두 지우기</button>
+    </div>
+    <p class="empty-state" data-empty>아직 저장된 점 기록이 없습니다.</p>
+    <div class="records" data-records></div>
+  </section>
+
+  <footer>
+    <p><a href="reference/random-number-table.html">난수표와 방법 설명</a> · <a href="reference/reading-rules.html">고변점 규칙</a> · <a href="lessons/0001-cast-a-hexagram.html">학습 과정</a></p>
+    <p class="src">이 도구는 예언을 확정하는 장치가 아니라, 질문과 판단 과정을 기록하고 검토하는 학습 도구입니다.</p>
+  </footer>
+</main>
+
+<dialog data-outcome-dialog>
+  <form method="dialog" class="outcome-form" data-outcome-form>
+    <h2>실제로 일어난 일</h2>
+    <input type="hidden" name="id">
+    <label>관찰한 사실
+      <textarea name="facts" required placeholder="해석을 섞지 말고 실제로 일어난 일만 적습니다."></textarea>
+    </label>
+    <label>사전 예상에 대한 판단
+      <select name="rating" required>
+        <option value="">선택</option>
+        <option value="hit">대체로 맞음</option>
+        <option value="mixed">섞여 있음</option>
+        <option value="miss">대체로 틀림</option>
+        <option value="unclear">아직 판정 불가</option>
+      </select>
+    </label>
+    <label>메모 <textarea name="note" placeholder="판정 이유나 다음에 확인할 점"></textarea></label>
+    <div class="button-row">
+      <button value="cancel" type="button" data-close-dialog>취소</button>
+      <button class="primary" value="save" type="submit">결과 저장</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="assets/hex64.js"></script>
+<script src="assets/hexagram.js"></script>
+<script src="assets/db-links.js"></script>
+<script src="assets/zhen-hui.js"></script>
+<script src="assets/webapp.js"></script>
+</body>
+</html>

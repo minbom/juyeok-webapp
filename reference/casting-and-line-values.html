@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>참고: 점 뽑기 요약 카드</title><link rel="stylesheet" href="../assets/course.css"></head>
+<body><main>
+  <p class="eyebrow">Reference · 주역</p>
+  <h1>점 뽑기 요약 카드</h1>
+  <p class="lede">동전 세 개로 괘 하나를 뽑기까지의 전 과정. 실제로 점을 칠 때 이 한 장만 곁에 두면 됩니다.</p>
+
+  <h2>절차</h2>
+  <ol class="steps">
+    <li><strong>질문을 한 문장으로 적는다.</strong> 예/아니오가 아니라 상황을 묻는 형태로.</li>
+    <li><strong>동전 세 개를 한 번에 던진다.</strong> 앞면 3점, 뒷면 2점. 세 개를 더해 6·7·8·9 중 하나를 얻는다.</li>
+    <li><strong>맨 아래부터 그린다.</strong> 첫 던지기 = 초효 = 맨 아래 칸.</li>
+    <li><strong>여섯 번 반복한다.</strong> 위로 한 칸씩 쌓아 올린다. 여섯 번째가 상효(맨 위).</li>
+    <li><strong>변효(6·9)에 표시한다.</strong> 노양 9는 ○, 노음 6은 ✕.</li>
+    <li>완성된 여섯 효가 <strong>본괘(本卦)</strong>다. 변효를 뒤집으면 <strong>지괘(之卦)</strong>가 된다.</li>
+  </ol>
+
+  <h2>효값 대응표</h2>
+  <table class="mini-table">
+    <thead><tr><th>합계</th><th>동전</th><th>이름</th><th>음양</th><th>변효</th><th>표시</th></tr></thead>
+    <tbody>
+      <tr><td><b>6</b></td><td>뒤·뒤·뒤</td><td class="hanja">노음 <small>老陰</small></td><td>음효</td><td>변한다 → 양</td><td>✕</td></tr>
+      <tr><td><b>7</b></td><td>앞·뒤·뒤</td><td class="hanja">소양 <small>少陽</small></td><td>양효</td><td>—</td><td>—</td></tr>
+      <tr><td><b>8</b></td><td>앞·앞·뒤</td><td class="hanja">소음 <small>少陰</small></td><td>음효</td><td>—</td><td>—</td></tr>
+      <tr><td><b>9</b></td><td>앞·앞·앞</td><td class="hanja">노양 <small>老陽</small></td><td>양효</td><td>변한다 → 음</td><td>○</td></tr>
+    </tbody>
+  </table>
+  <p><strong>기억법:</strong> 홀수(7·9)는 양, 짝수(6·8)는 음. 바깥값(6·9)은 변하고, 안쪽값(7·8)은 변하지 않는다.</p>
+
+  <h2>자리 이름</h2>
+  <div class="hex">
+    <div class="hex-row"><span class="hex-pos">초효</span><span class="yao yang"></span><span class="hex-note">1번째로 던진 효 · 맨 아래</span></div>
+    <div class="hex-row"><span class="hex-pos">2효</span><span class="yao yin"></span><span class="hex-note">2번째</span></div>
+    <div class="hex-row"><span class="hex-pos">3효</span><span class="yao yang"></span><span class="hex-note">3번째 · 여기까지가 하괘(下卦)</span></div>
+    <div class="hex-row"><span class="hex-pos">4효</span><span class="yao yin"></span><span class="hex-note">4번째 · 여기부터 상괘(上卦)</span></div>
+    <div class="hex-row"><span class="hex-pos">5효</span><span class="yao yang"></span><span class="hex-note">5번째</span></div>
+    <div class="hex-row"><span class="hex-pos">상효</span><span class="yao yin"></span><span class="hex-note">6번째로 던진 효 · 맨 위</span></div>
+  </div>
+
+  <h2>확률</h2>
+  <table class="mini-table">
+    <thead><tr><th>효값</th><th>시초법(산가지 50개)</th><th>동전법(동전 3개)</th></tr></thead>
+    <tbody>
+      <tr><td>6 노음 (변효)</td><td>1/16 = 6.25%</td><td>1/8 = 12.5%</td></tr>
+      <tr><td>7 소양</td><td>5/16 = 31.25%</td><td>3/8 = 37.5%</td></tr>
+      <tr><td>8 소음</td><td>7/16 = 43.75%</td><td>3/8 = 37.5%</td></tr>
+      <tr><td>9 노양 (변효)</td><td>3/16 = 18.75%</td><td>1/8 = 12.5%</td></tr>
+      <tr><td><strong>변효 총계</strong></td><td><strong>4/16 = 25%</strong></td><td><strong>2/8 = 25%</strong></td></tr>
+    </tbody>
+  </table>
+  <p>두 방법의 변효 총확률은 25%로 같다. 차이는 <strong>변효의 방향</strong>이다 — 시초법은 변하는 양(9)이 변하는 음(6)보다 세 배 흔하고, 동전법은 둘이 같다. 여섯 효 모두 변효가 없을 확률은 동전법에서 0.75<sup>6</sup> ≈ 18%다.<sup><a href="https://www.biroco.com/yijing/prob.htm">1</a></sup></p>
+
+  <div class="callout warning"><strong>규약 고정.</strong> 이 워크스페이스는 <strong>앞면 = 3(양)</strong>으로 통일한다. 전통마다 다르므로, 어느 면을 앞으로 볼지 정하고 바꾸지 말 것. 뒤집으면 6↔9, 7↔8이 통째로 바뀐다.</div>
+
+  <h2>출처</h2>
+  <ol>
+    <li><a href="https://en.wikipedia.org/wiki/I_Ching_divination">Wikipedia — I Ching divination</a> (척전법·시초법 절차, 6·7·8·9 대응, 지괘 생성)</li>
+    <li><a href="https://www.biroco.com/yijing/prob.htm">Yijing Dao — Probabilities with coins and yarrow stalks</a> (두 점법의 확률)</li>
+    <li><a href="https://db.cyberseodang.or.kr/front/alphaList/BookMain.do?tab=tab1_01&bnCode=jti_1a0201&titleId=C1">동양고전종합DB — 주역전의</a> (괘사·효사 원문과 번역)</li>
+  </ol>
+
+  <p class="next"><a href="../lessons/0001-cast-a-hexagram.html">← Lesson 1</a> · <a href="../RESOURCES.md">RESOURCES</a></p>
+</main></body></html>
