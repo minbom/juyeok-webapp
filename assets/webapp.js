@@ -145,6 +145,69 @@
     castStage.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
+  let textPromise = null;
+  async function loadText64() {
+    if (textPromise) return textPromise;
+    textPromise = fetch('assets/text64.json')
+      .then((response) => {
+        if (!response.ok) throw new Error(`원문 코퍼스 응답 ${response.status}`);
+        return response.json();
+      })
+      .then((data) => data.hex);
+    return textPromise;
+  }
+
+  function renderJuso(block) {
+    if (!block?.juso?.length) return '';
+    return `<details class="juso"><summary>注疏 보기 (${block.juso.length})</summary>${block.juso.map((j) => `<p class="juso-line"><span class="org">${esc(j.org)}</span><span class="trans">${esc(j.trans)}</span></p>`).join('')}</details>`;
+  }
+
+  function renderReadItem(item, hexData) {
+    const h = hexData[String(item.hexNum)];
+    if (!h) return '<p class="form-error">이 괘의 원문을 찾지 못했습니다.</p>';
+    const star = item.main ? '★ 主' : '보조';
+    const role = item.role ? ` [${esc(item.role)}]` : '';
+    if (item.kind === '괘사') {
+      return `<div class="read-item">
+        <p class="read-head">${star}${role} · ${h.num} ${esc(h.name)} 괘사</p>
+        <p class="org">${esc(h.gua.org)}</p>
+        <p class="trans">${esc(h.gua.trans)}</p>
+        ${renderJuso(h.gua)}
+        <p class="daxiang"><b>大象</b> ${esc(h.daxiang.org)}<br>${esc(h.daxiang.trans)}</p>
+        ${h.daxiang.partial ? `<p class="partial-note">※ ${esc(h.daxiang.partial)}</p>` : ''}
+      </div>`;
+    }
+    if (item.kind === '효사') {
+      const ln = h.lines[item.seat - 1];
+      return `<div class="read-item">
+        <p class="read-head">${star} · ${h.num} ${esc(h.name)} · ${POSITIONS[item.seat - 1]} ${esc(ln.label)}</p>
+        <p class="org">${esc(ln.org)}</p>
+        <p class="trans">${esc(ln.trans)}</p>
+        ${renderJuso(ln)}
+        ${ln.xiaoxiang ? `<p class="xiaoxiang"><b>小象</b> ${esc(ln.xiaoxiang.org)}<br>${esc(ln.xiaoxiang.trans)}</p>${renderJuso(ln.xiaoxiang)}` : ''}
+        <p class="daxiang"><b>大象</b> ${esc(h.daxiang.org)} — ${esc(h.daxiang.trans)}</p>
+      </div>`;
+    }
+    const e = h.extra[item.extraIndex];
+    return `<div class="read-item">
+      <p class="read-head">${star} · ${h.num} ${esc(h.name)} · ${esc(e.label)}</p>
+      <p class="org">${esc(e.org)}</p>
+      <p class="trans">${esc(e.trans)}</p>
+      ${renderJuso(e)}
+    </div>`;
+  }
+
+  async function renderReadingText(cast) {
+    const host = document.querySelector('[data-reading-text]');
+    if (!host) return;
+    try {
+      const hexData = await loadText64();
+      host.innerHTML = (cast.rule.read || []).map((item) => renderReadItem(item, hexData)).join('');
+    } catch (err) {
+      host.innerHTML = `<p class="form-error">원문을 불러오지 못했습니다: ${esc(err.message)}</p>`;
+    }
+  }
+
   async function loadTable() {
     if (tablePromise) return tablePromise;
     tablePromise = fetch('reference/random-number-table.html')
@@ -371,29 +434,35 @@
     const count = moving.length;
     const still = [1, 2, 3, 4, 5, 6].filter((position) => !moving.includes(position));
     const changed = values.map((value) => value === 6 ? 7 : value === 9 ? 8 : value);
-    if (count === 0) return { title: '六爻不變 — 본괘의 괘사', detail: `${result.ben.name}의 괘사를 읽습니다. 효사는 고르지 않습니다.`, main: `본괘 ${result.ben.num} ${result.ben.name}` };
+    if (count === 0) return { title: '六爻不變 — 본괘의 괘사', detail: `${result.ben.name}의 괘사를 읽습니다. 효사는 고르지 않습니다.`, main: `본괘 ${result.ben.num} ${result.ben.name}`, read: [{ kind: '괘사', hexNum: result.ben.num, main: true }] };
     if (count === 1) {
       const pos = moving[0];
-      return { title: '一爻變 — 본괘의 변효 효사', detail: `${POSITIONS[pos - 1]} ${lineLabel(pos - 1, values[pos - 1])}를 읽습니다.`, main: `${result.ben.name} ${lineLabel(pos - 1, values[pos - 1])}` };
+      return { title: '一爻變 — 본괘의 변효 효사', detail: `${POSITIONS[pos - 1]} ${lineLabel(pos - 1, values[pos - 1])}를 읽습니다.`, main: `${result.ben.name} ${lineLabel(pos - 1, values[pos - 1])}`, read: [{ kind: '효사', hexNum: result.ben.num, seat: pos, main: true }] };
     }
     if (count === 2) {
       const main = Math.max(...moving);
-      return { title: '二爻變 — 본괘의 두 변효 효사', detail: `${moving.map((pos) => lineLabel(pos - 1, values[pos - 1])).join('·')}를 모두 읽고, 주자 규약에 따라 위쪽 ${lineLabel(main - 1, values[main - 1])}를 主로 삼습니다.`, main: `${result.ben.name} ${lineLabel(main - 1, values[main - 1])}` };
+      return { title: '二爻變 — 본괘의 두 변효 효사', detail: `${moving.map((pos) => lineLabel(pos - 1, values[pos - 1])).join('·')}를 모두 읽고, 주자 규약에 따라 위쪽 ${lineLabel(main - 1, values[main - 1])}를 主로 삼습니다.`, main: `${result.ben.name} ${lineLabel(main - 1, values[main - 1])}`, read: moving.map((pos) => ({ kind: '효사', hexNum: result.ben.num, seat: pos, main: pos === main })) };
     }
     if (count === 3) {
       const zh = zhenHui(moving);
-      return { title: '三爻變 — 본괘와 지괘의 괘사', detail: `${zh.rank}/20 ${zh.half}이므로 主는 ${zh.main}(${zh.mainHex})입니다. 두 괘사를 함께 읽되 ${zh.mainHex} 쪽에 무게를 둡니다.`, main: `${zh.mainHex} ${zh.front ? result.ben.num : result.zhi.num} ${zh.front ? result.ben.name : result.zhi.name}`, zhenhui: zh };
+      return { title: '三爻變 — 본괘와 지괘의 괘사', detail: `${zh.rank}/20 ${zh.half}이므로 主는 ${zh.main}(${zh.mainHex})입니다. 두 괘사를 함께 읽되 ${zh.mainHex} 쪽에 무게를 둡니다.`, main: `${zh.mainHex} ${zh.front ? result.ben.num : result.zhi.num} ${zh.front ? result.ben.name : result.zhi.name}`, zhenhui: zh, read: [
+        { kind: '괘사', hexNum: result.ben.num, main: zh.main === '貞', role: '貞(본괘)' },
+        { kind: '괘사', hexNum: result.zhi.num, main: zh.main === '悔', role: '悔(지괘)' }
+      ] };
     }
     if (count === 4) {
       const main = Math.min(...still);
-      return { title: '四爻變 — 지괘의 불변효 두 효사', detail: `${still.map((pos) => lineLabel(pos - 1, changed[pos - 1])).join('·')}를 읽고, 아래쪽 ${lineLabel(main - 1, changed[main - 1])}를 主로 삼습니다.`, main: `${result.zhi.name} ${lineLabel(main - 1, changed[main - 1])}` };
+      return { title: '四爻變 — 지괘의 불변효 두 효사', detail: `${still.map((pos) => lineLabel(pos - 1, changed[pos - 1])).join('·')}를 읽고, 아래쪽 ${lineLabel(main - 1, changed[main - 1])}를 主로 삼습니다.`, main: `${result.zhi.name} ${lineLabel(main - 1, changed[main - 1])}`, read: still.map((pos) => ({ kind: '효사', hexNum: result.zhi.num, seat: pos, main: pos === main })) };
     }
     if (count === 5) {
       const pos = still[0];
-      return { title: '五爻變 — 지괘의 불변효 효사', detail: `${POSITIONS[pos - 1]} ${lineLabel(pos - 1, changed[pos - 1])} 하나를 읽습니다.`, main: `${result.zhi.name} ${lineLabel(pos - 1, changed[pos - 1])}` };
+      return { title: '五爻變 — 지괘의 불변효 효사', detail: `${POSITIONS[pos - 1]} ${lineLabel(pos - 1, changed[pos - 1])} 하나를 읽습니다.`, main: `${result.zhi.name} ${lineLabel(pos - 1, changed[pos - 1])}`, read: [{ kind: '효사', hexNum: result.zhi.num, seat: pos, main: true }] };
     }
     const special = result.ben.num === 1 ? '건괘의 用九를 읽습니다.' : result.ben.num === 2 ? '곤괘의 用六을 읽습니다.' : `${result.zhi.name}의 괘사를 읽습니다.`;
-    return { title: '六爻變 — 지괘의 괘사', detail: special, main: result.ben.num === 1 ? '乾 用九' : result.ben.num === 2 ? '坤 用六' : `지괘 ${result.zhi.num} ${result.zhi.name}` };
+    const read = result.ben.num === 1 || result.ben.num === 2
+      ? [{ kind: '用', hexNum: result.ben.num, extraIndex: 0, main: true }]
+      : [{ kind: '괘사', hexNum: result.zhi.num, main: true }];
+    return { title: '六爻變 — 지괘의 괘사', detail: special, main: result.ben.num === 1 ? '乾 用九' : result.ben.num === 2 ? '坤 用六' : `지괘 ${result.zhi.num} ${result.zhi.name}`, read };
   }
 
   function finalizeCast(values, source, rolls) {
@@ -451,13 +520,15 @@
         <h3>고변점 추출문</h3>
         <p class="reading-target">主: ${esc(cast.rule.main)}</p>
         <p class="rule-detail">${esc(cast.rule.title)} — ${esc(cast.rule.detail)}</p>
-        <p class="saved-note">위 괘사·효사의 원문·번역은 아래 링크에서 직접 읽고 해석문을 씁니다. 이 규칙 판정은 이 기기에 자동 저장되었습니다.</p>
+        <p class="saved-note">이 규칙 판정은 이 기기에 자동 저장되었습니다.</p>
       </div>
+      <div class="reading-text" data-reading-text><p class="loading-note">괘사·효사 원문을 불러오는 중…</p></div>
       <p class="source-links"><b>번역·注疏</b> <a href="${TRANS_LINK[cast.ben.num]}" target="_blank" rel="noopener">본괘 ${cast.ben.num}번</a>${cast.zhi ? ` · <a href="${TRANS_LINK[cast.zhi.num]}" target="_blank" rel="noopener">지괘 ${cast.zhi.num}번</a>` : ''}<br><b>현토 원문</b> <a href="${DB_LINK[cast.ben.num]}" target="_blank" rel="noopener">본괘 ${cast.ben.num}번</a>${cast.zhi ? ` · <a href="${DB_LINK[cast.zhi.num]}" target="_blank" rel="noopener">지괘 ${cast.zhi.num}번</a>` : ''}</p>`;
     drawHex(resultHost.querySelector('[data-ben-hex]'), cast.values);
     if (cast.zhi) {
       drawHex(resultHost.querySelector('[data-zhi-hex]'), cast.values.map((value) => value === 6 ? 7 : value === 9 ? 8 : value));
     }
+    renderReadingText(cast);
   }
 
   guessForm.addEventListener('submit', (event) => {

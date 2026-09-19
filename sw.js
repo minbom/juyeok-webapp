@@ -1,4 +1,4 @@
-const CACHE = 'juyeok-web-v7';
+const CACHE = 'juyeok-web-v8';
 const APP_SHELL = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const APP_SHELL = [
   './assets/db-links.js',
   './assets/zhen-hui.js',
   './assets/webapp.js',
+  './assets/text64.json',
   './reference/random-number-table.html',
   './reference/reading-rules.html'
 ];

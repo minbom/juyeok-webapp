@@ -67,6 +67,19 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .reading-rule p { max-width: none; margin: .35rem 0; }
 .reading-target { font: 700 1.2rem/1.4 ui-serif, Georgia, "Noto Serif KR", serif; }
 .rule-detail { color: var(--muted); font: .85rem/1.55 ui-sans-serif, system-ui, sans-serif; }
+.reading-text { display: grid; gap: 1rem; margin: 1rem 0; }
+.loading-note { color: var(--muted); font: .88rem ui-sans-serif, system-ui, sans-serif; }
+.read-item { padding: 1rem; border: 1px solid var(--rule); border-radius: 10px; background: #f9faf8; }
+.read-head { margin: 0 0 .5rem; color: var(--blue); font: 700 .82rem ui-sans-serif, system-ui, sans-serif; }
+.read-item .org { margin: 0 0 .2rem; font: 1.05rem/1.7 ui-serif, Georgia, "Noto Serif KR", serif; }
+.read-item .trans { margin: 0 0 .5rem; color: var(--muted); }
+.daxiang, .xiaoxiang { margin: .6rem 0 0; padding-top: .6rem; border-top: 1px dashed var(--rule); font-size: .92rem; }
+.partial-note { color: var(--red); font: .8rem ui-sans-serif, system-ui, sans-serif; }
+.juso { margin-top: .6rem; font-size: .88rem; }
+.juso summary { color: var(--blue); cursor: pointer; font: 700 .8rem ui-sans-serif, system-ui, sans-serif; }
+.juso-line { display: grid; gap: .1rem; margin: .5rem 0 0; padding-left: .8rem; border-left: 2px solid var(--rule); }
+.juso-line .org { color: var(--ink); }
+.juso-line .trans { color: var(--muted); }
 .source-links { font: .9rem/1.6 ui-sans-serif, system-ui, sans-serif; }
 .saved-note { color: #816022; font: .78rem/1.5 ui-sans-serif, system-ui, sans-serif; }
 .button-row, .record-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: .9rem; }
