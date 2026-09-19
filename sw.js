@@ -1,7 +1,8 @@
-const CACHE = 'juyeok-web-v3';
+const CACHE = 'juyeok-web-v4';
 const APP_SHELL = [
   './',
   './index.html',
+  './404.html',
   './manifest.webmanifest',
   './assets/course.css',
   './assets/webapp.css',
